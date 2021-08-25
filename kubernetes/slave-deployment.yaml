@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
@@ -22,7 +22,8 @@ spec:
         role: locust-slave
     spec:
       containers:
-      - image: grubykarol/locust:0.8.1-py3.6
+      # - image: grubykarol/locust:0.8.1-py3.6
+      - image: grubykarol/locust:1.2.3-python3.9-alpine3.12
         imagePullPolicy: IfNotPresent
         name: locust-slave
         env:
@@ -32,8 +33,8 @@ spec:
                 name: locust-cm
                 key: ATTACKED_HOST
           - name: LOCUST_MODE
-            value: SLAVE
-          - name: LOCUST_MASTER
+            value: worker
+          - name: LOCUST_MASTER_HOST
             value: locust-master
         volumeMounts:
           - mountPath: /locust
@@ -41,6 +42,13 @@ spec:
         resources: {}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
+      nodeSelector:
+        app: locust
+      tolerations:
+      - key: run
+        operator: Equal
+        value: locust
+        effect: NoSchedule
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
